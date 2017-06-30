@@ -30,3 +30,10 @@ class FeedForward():
         self.biases = [np.zeros(self.no_of_hidden_units[i]) for i in range(self.no_of_hidden_layers)]
         self.biases.append([np.zeros(self.no_of_output_units)])
 
+    def sigmoid(self, x):
+        return 1 / (1 + np.exp(-x))
+
+    def diff_sigmoid(self, x):
+        return x * (1 - x)
+
+
