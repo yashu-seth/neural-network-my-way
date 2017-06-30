@@ -19,16 +19,8 @@ class FeedForward():
         else:
             self.no_of_hidden_units = no_of_hidden_units
 
-        # weight matrix between input layer and first hidden layer
-        self.weights = [np.zeros(shape=(self.no_of_input_units, self.no_of_hidden_units[0]))]
-        #weight matrices between hidden layers
-        self.weights.extend([np.zeros(shape=(self.no_of_hidden_units[i-1], self.no_of_hidden_units[i]))
-                            for i in range(1, self.no_of_hidden_layers)])
-        #weight matrix between output layer and last hidden layer
-        self.weights.append(np.zeros(shape=(self.no_of_hidden_units[self.no_of_hidden_layers - 1], self.no_of_output_units)))
-
-        self.biases = [np.zeros(self.no_of_hidden_units[i]) for i in range(self.no_of_hidden_layers)]
-        self.biases.append([np.zeros(self.no_of_output_units)])
+        self.weights = None
+        self.biases = None
 
     def sigmoid(self, x):
         return 1 / (1 + np.exp(-x))
@@ -36,4 +28,17 @@ class FeedForward():
     def diff_sigmoid(self, x):
         return x * (1 - x)
 
+    def random_initialize(self):
 
+        # weight matrix between input layer and first hidden layer
+        self.weights = [np.random.uniform(size=(self.no_of_input_units, self.no_of_hidden_units[0]))]
+        #weight matrices between hidden layers
+        self.weights.extend([np.random.uniform(size=(self.no_of_hidden_units[i-1], self.no_of_hidden_units[i]))
+                            for i in range(1, self.no_of_hidden_layers)])
+        #weight matrix between output layer and last hidden layer
+        self.weights.append(np.random.uniform(size=(self.no_of_hidden_units[self.no_of_hidden_layers - 1], self.no_of_output_units)))
+
+        self.biases = [np.random.uniform(self.no_of_hidden_units[i]) for i in range(self.no_of_hidden_layers)]
+        self.biases.append([np.random.uniform(self.no_of_output_units)])
+
+    
