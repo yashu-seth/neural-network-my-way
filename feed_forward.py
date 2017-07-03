@@ -51,7 +51,7 @@ class FeedForward():
     def forward_prop(self):
         if self.weights == None:
             self.random_initialize()
-            self.hidden_layer_activations = [self.X]
+            self.hidden_layer_activations = [self.X.T]
 
         current_input = self.X.T
 
@@ -61,87 +61,40 @@ class FeedForward():
 
         self.output = current_input
 
-#     def backward_prop(self, lr):
-#         prev_activation_grad = self.t - self.output 
+    def backward_prop(self, lr):
+        prev_activation_grad = self.t - self.output 
 
-#         deriv_weights = [0,] * (self.no_of_hidden_layers + 1)
-#         deriv_biases = [0,] * (self.no_of_hidden_layers + 1)
+        deriv_weights = [0,] * (self.no_of_hidden_layers + 1)
+        deriv_biases = [0,] * (self.no_of_hidden_layers + 1)
         
 
-#         # dE/dW_n = (y-t)y(1-y)h_n
+        # dE/dW_n = (y-t)y(1-y)h_n
+        deriv_weights[-1] = np.dot(prev_activation_grad * self.deriv_sigmoid(self.output),
+                                   self.hidden_layer_activations[-2].T)
 
-#         print(prev_activation_grad.shape)
-#         print(self.deriv_sigmoid(self.output).shape)
-#         print(self.hidden_layer_activations[-2].shape)
-
-#         deriv_weights[-1] = np.dot(prev_activation_grad * self.deriv_sigmoid(self.output),
-#                                    self.hidden_layer_activations[-2].T)
-
-#         print(deriv_weights[-1].shape)
-#         print(self.weights[-1].shape)
-
-#         # dE/db_n = (y-t)y(1-y)
-#         deriv_biases[-1] = prev_activation_grad *\
-#                            self.deriv_sigmoid(self.output)
+        # dE/db_n = (y-t)y(1-y)
+        deriv_biases[-1] = np.dot(prev_activation_grad *\
+                                  self.deriv_sigmoid(self.output), np.ones(shape=(self.no_of_samples, 1)))
 
 
-#         for j in range(self.no_of_hidden_layers):
-#             i = self.no_of_hidden_layers - j - 1
+        for j in range(self.no_of_hidden_layers):
+            i = self.no_of_hidden_layers - j - 1
 
-#             prev_deriv_hid_layer = self.deriv_sigmoid(self.hidden_layer_activations[i+1])
+            prev_deriv_hid_layer = self.deriv_sigmoid(self.hidden_layer_activations[i+1])
 
-#             # dE/dh_i+1 = dE/dh_i+2 * (h_i+1)' * w_i
-#             # print(prev_activation_grad)
-#             # print
-#             # print
-#             # print(self.deriv_sigmoid(self.hidden_layer_activations[i+2]))
-#             prev_activation_grad = prev_activation_grad *\
-#                                    self.deriv_sigmoid(self.hidden_layer_activations[i+2]) *\
-#                                    self.weights[i]
+            
+            prev_activation_grad = np.dot(self.weights[i+1].T,
+                                          prev_activation_grad *\
+                                          self.deriv_sigmoid(self.hidden_layer_activations[i+2]))
 
-#             # dE/dw_i = dE/dh_i+1 * (h_i+1)' * h_i
-#             deriv_weights[i] = prev_activation_grad *\
-#                                prev_deriv_hid_layer *\
-#                                self.hidden_layer_activations[i]
+            # dE/dw_i = dE/dh_i+1 * (h_i+1)' * h_i
+            deriv_weights[i] = np.dot(prev_activation_grad * prev_deriv_hid_layer,
+                                      self.hidden_layer_activations[i].T)
 
-#             deriv_biases[i] = prev_activation_grad *\
-#                               prev_deriv_hid_layer
+            deriv_biases[i] = np.dot(prev_activation_grad *\
+                                     prev_deriv_hid_layer, np.ones(shape=(self.no_of_samples, 1)))
 
-#         # updation
-#         self.weights += lr * deriv_weights
-#         self.biases += lr * deriv_biases
-
-
-
-# x = np.array([[1,0,1,0], [1,0,1,1], [0,1,0,1], [1,0,1,0], [1,0,1,1], [0,1,0,1]])
-# y = np.array([[1, 0], [1, 1], [0, 0], [1, 0], [1, 1], [0, 0]])
-
-# # print(a.weights)
-
-# w1 = np.array([[0.42, 0.88, 0.55],
-#                [0.10, 0.73, 0.68],
-#                [0.60, 0.18, 0.47],
-#                [0.92, 0.11, 0.52]])
-
-# w2 = np.array([[0.30], [0.25], [0.23]])
-
-# b1 = np.array([0.46, 0.72, 0.08])
-# b2 = np.array([0.69])
-
-# a = FeedForward(x, y, 2, 2, [5, 3])
-
-# # a.random_initialize()
-
-# # print(a.weights)
-# # print(a.biases)
-
-# # a.weights = [w1, w2]
-# # a.biases = [b1, b2]
-# # a.hidden_layer_activations = [x]
-# # print(a.output)
-
-# a.forward_prop()
-
-# # print(a.output)
-
-# a.backward_prop(0.1)
+        # updation
+        for i in range(self.no_of_hidden_layers + 1):
+            self.weights[i] -= lr * deriv_weights[i]
+            self.biases[i] += lr * deriv_biases[i]
