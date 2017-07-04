@@ -1,22 +1,19 @@
 import numpy as np
 
 class FeedForward():
-    def __init__(self, data, labels, no_of_output_units, no_of_hidden_layers = 1, no_of_hidden_units = None):
+    def __init__(self, no_of_hidden_layers = 0, no_of_hidden_units = None):
 
-        self.X = data
-        self.no_of_samples = self.X.shape[0]
-        self.no_of_input_units = self.X.shape[1]
-        self.t = labels.T
-        self.output = np.zeros(shape=(no_of_output_units, self.t.shape[1]))
-
-        if self.no_of_samples != self.t.shape[1] or self.t.shape[0] != no_of_output_units:
-            raise ValueError
+        self.X = None
+        self.no_of_samples = None
+        self.no_of_input_units = None
+        self.t = None
+        self.output = None
 
         self.no_of_hidden_layers = no_of_hidden_layers
-        self.no_of_output_units = no_of_output_units
+        self.no_of_output_units = None
 
         if no_of_hidden_units == None:
-            self.no_of_hidden_units = [self.no_of_input_units,] * no_of_hidden_layers
+            self.no_of_hidden_units = []
         else:
             self.no_of_hidden_units = no_of_hidden_units
 
@@ -51,8 +48,8 @@ class FeedForward():
     def forward_prop(self):
         if self.weights == None:
             self.random_initialize()
-            self.hidden_layer_activations = [self.X.T]
-
+        
+        self.hidden_layer_activations = [self.X.T]
         current_input = self.X.T
 
         for i in range(self.no_of_hidden_layers + 1):
@@ -81,7 +78,6 @@ class FeedForward():
             i = self.no_of_hidden_layers - j - 1
 
             prev_deriv_hid_layer = self.deriv_sigmoid(self.hidden_layer_activations[i+1])
-
             
             prev_activation_grad = np.dot(self.weights[i+1].T,
                                           prev_activation_grad *\
@@ -96,5 +92,35 @@ class FeedForward():
 
         # updation
         for i in range(self.no_of_hidden_layers + 1):
-            self.weights[i] -= lr * deriv_weights[i]
+            self.weights[i] += lr * deriv_weights[i]
             self.biases[i] += lr * deriv_biases[i]
+
+    def fit(self, data, labels, no_of_output_units, epoch, lr):
+
+        self.X = data
+        self.no_of_samples = self.X.shape[0]
+        self.no_of_input_units = self.X.shape[1]
+        self.t = labels.T
+        self.output = np.zeros(shape=(no_of_output_units, self.t.shape[1]))
+        self.no_of_output_units = no_of_output_units
+
+        if self.no_of_samples != self.t.shape[1] or self.t.shape[0] != no_of_output_units:
+            raise ValueError
+
+        for i in range(epoch):
+            self.forward_prop()
+            self.backward_prop(lr)
+
+    def initalize(self, data, labels, no_of_output_units):
+        """
+        Will be removed after some changes.
+        """
+        self.X = data
+        self.no_of_samples = self.X.shape[0]
+        self.no_of_input_units = self.X.shape[1]
+        self.t = labels.T
+        self.output = np.zeros(shape=(no_of_output_units, self.t.shape[1]))
+        self.no_of_output_units = no_of_output_units
+
+        if self.no_of_samples != self.t.shape[1] or self.t.shape[0] != no_of_output_units:
+            raise ValueError
