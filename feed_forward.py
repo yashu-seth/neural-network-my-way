@@ -1,8 +1,25 @@
 import numpy as np
 
 class FeedForward():
+    """
+    Feed Forward Neural Network.
+    """
     def __init__(self, no_of_hidden_layers, no_of_hidden_units_per_layer):
+        """
+        Parameters
+        ----------
 
+        no_of_hidden_layers: Int
+        The total number of hidden layers in the network.
+
+        no_of_hidden_units_per_layer: List
+        The number of neurons in each layer.
+
+        Example
+        -------
+
+        >>> model = FeedForward(2, [3, 5])
+        """
         self.no_of_hidden_layers = no_of_hidden_layers
 
         if no_of_hidden_units_per_layer == None:
@@ -10,7 +27,7 @@ class FeedForward():
         else:
             self.no_of_hidden_units_per_layer = no_of_hidden_units_per_layer
 
-        self.hidden_layer_activations = None
+        self.layer_activations = None
         self.weights = None
         self.biases = None
 
@@ -57,12 +74,15 @@ class FeedForward():
         if self.weights == None:
             self.random_initialize()
         
-        self.hidden_layer_activations = [self.X.T]
+        # The self.layer_activations stroes the output of each layer.
+        # The first term is the input, the last term is the final output and the
+        # terms in between are the hidden layer activations.
+        self.layer_activations = [self.X.T]
         current_input = self.X.T
 
         for i in range(self.no_of_hidden_layers + 1):
             current_input = self.sigmoid(np.dot(self.weights[i], current_input) + self.biases[i])
-            self.hidden_layer_activations.append(current_input)
+            self.layer_activations.append(current_input)
 
         self.output = current_input
 
@@ -75,7 +95,7 @@ class FeedForward():
 
         # dE/dW_n = (y-t)y(1-y)h_n
         deriv_weights[-1] = np.dot(prev_activation_grad * self.deriv_sigmoid(self.output),
-                                   self.hidden_layer_activations[-2].T)
+                                   self.layer_activations[-2].T)
 
         # dE/db_n = (y-t)y(1-y)
         deriv_biases[-1] = np.dot(prev_activation_grad *\
@@ -85,15 +105,15 @@ class FeedForward():
         for j in range(self.no_of_hidden_layers):
             i = self.no_of_hidden_layers - j - 1
 
-            prev_deriv_hid_layer = self.deriv_sigmoid(self.hidden_layer_activations[i+1])
+            prev_deriv_hid_layer = self.deriv_sigmoid(self.layer_activations[i+1])
             
             prev_activation_grad = np.dot(self.weights[i+1].T,
                                           prev_activation_grad *\
-                                          self.deriv_sigmoid(self.hidden_layer_activations[i+2]))
+                                          self.deriv_sigmoid(self.layer_activations[i+2]))
 
             # dE/dw_i = dE/dh_i+1 * (h_i+1)' * h_i
             deriv_weights[i] = np.dot(prev_activation_grad * prev_deriv_hid_layer,
-                                      self.hidden_layer_activations[i].T)
+                                      self.layer_activations[i].T)
 
             deriv_biases[i] = np.dot(prev_activation_grad *\
                                      prev_deriv_hid_layer, np.ones(shape=(self.no_of_samples, 1)))
