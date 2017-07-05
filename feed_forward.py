@@ -1,25 +1,30 @@
 import numpy as np
 
 class FeedForward():
-    def __init__(self, no_of_hidden_layers = 0, no_of_hidden_units = None):
-
-        self.X = None
-        self.no_of_samples = None
-        self.no_of_input_units = None
-        self.t = None
-        self.output = None
+    def __init__(self, no_of_hidden_layers, no_of_hidden_units_per_layer):
 
         self.no_of_hidden_layers = no_of_hidden_layers
-        self.no_of_output_units = None
 
-        if no_of_hidden_units == None:
-            self.no_of_hidden_units = []
+        if no_of_hidden_units_per_layer == None:
+            self.no_of_hidden_units_per_layer = []
         else:
-            self.no_of_hidden_units = no_of_hidden_units
+            self.no_of_hidden_units_per_layer = no_of_hidden_units_per_layer
 
         self.hidden_layer_activations = None
         self.weights = None
         self.biases = None
+
+    def initalize(self, data, labels, no_of_output_units):
+
+        self.X = data
+        self.no_of_samples = self.X.shape[0]
+        self.no_of_input_units = self.X.shape[1]
+        self.t = labels.T
+        self.output = np.zeros(shape=(no_of_output_units, self.t.shape[1]))
+        self.no_of_output_units = no_of_output_units
+
+        if self.no_of_samples != self.t.shape[1] or self.t.shape[0] != no_of_output_units:
+            raise ValueError
 
     def sigmoid(self, x):
         return 1 / (1 + np.exp(-x))
@@ -33,19 +38,22 @@ class FeedForward():
         # h_i dimension = (no of units in layer i) X (no of input samples)
 
         # weight matrix between input layer and first hidden layer
-        self.weights = [np.random.uniform(size=(self.no_of_hidden_units[0], self.no_of_input_units))]
+        self.weights = [np.random.uniform(size=(self.no_of_hidden_units_per_layer[0], self.no_of_input_units))]
         #weight matrices between hidden layers
-        self.weights.extend([np.random.uniform(size=(self.no_of_hidden_units[i], self.no_of_hidden_units[i-1]))
+        self.weights.extend([np.random.uniform(size=(self.no_of_hidden_units_per_layer[i],
+                                                     self.no_of_hidden_units_per_layer[i-1]))
                             for i in range(1, self.no_of_hidden_layers)])
         #weight matrix between output layer and last hidden layer
         self.weights.append(np.random.uniform(size=(self.no_of_output_units,
-                                                    self.no_of_hidden_units[self.no_of_hidden_layers - 1],
+                                                    self.no_of_hidden_units_per_layer[self.no_of_hidden_layers - 1],
                                                    )))
 
-        self.biases = [np.random.uniform(size=(self.no_of_hidden_units[i], 1)) for i in range(self.no_of_hidden_layers)]
+        self.biases = [np.random.uniform(size=(self.no_of_hidden_units_per_layer[i], 1))
+                       for i in range(self.no_of_hidden_layers)]
         self.biases.append(np.random.uniform(size=(self.no_of_output_units, 1)))
 
-    def forward_prop(self):
+    def _forward_prop(self):
+
         if self.weights == None:
             self.random_initialize()
         
@@ -58,7 +66,7 @@ class FeedForward():
 
         self.output = current_input
 
-    def backward_prop(self, lr):
+    def _backward_prop(self, lr):
         prev_activation_grad = self.t - self.output 
 
         deriv_weights = [0,] * (self.no_of_hidden_layers + 1)
@@ -97,30 +105,13 @@ class FeedForward():
 
     def fit(self, data, labels, no_of_output_units, epoch, lr):
 
-        self.X = data
-        self.no_of_samples = self.X.shape[0]
-        self.no_of_input_units = self.X.shape[1]
-        self.t = labels.T
-        self.output = np.zeros(shape=(no_of_output_units, self.t.shape[1]))
-        self.no_of_output_units = no_of_output_units
-
-        if self.no_of_samples != self.t.shape[1] or self.t.shape[0] != no_of_output_units:
-            raise ValueError
+        self.initalize(data, labels, no_of_output_units)
 
         for i in range(epoch):
-            self.forward_prop()
-            self.backward_prop(lr)
+            self._forward_prop()
+            self._backward_prop(lr)
 
-    def initalize(self, data, labels, no_of_output_units):
-        """
-        Will be removed after some changes.
-        """
+    def predict(self, data):
         self.X = data
-        self.no_of_samples = self.X.shape[0]
-        self.no_of_input_units = self.X.shape[1]
-        self.t = labels.T
-        self.output = np.zeros(shape=(no_of_output_units, self.t.shape[1]))
-        self.no_of_output_units = no_of_output_units
-
-        if self.no_of_samples != self.t.shape[1] or self.t.shape[0] != no_of_output_units:
-            raise ValueError
+        self._forward_prop()
+        return self.output
