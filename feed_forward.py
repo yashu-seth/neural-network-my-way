@@ -43,6 +43,8 @@ class FeedForward():
         if self.no_of_samples != self.t.shape[1] or self.t.shape[0] != no_of_output_units:
             raise ValueError
 
+        self.random_initialize()
+
     def sigmoid(self, x):
         return 1 / (1 + np.exp(-x))
 
@@ -71,9 +73,6 @@ class FeedForward():
 
     def _forward_prop(self):
 
-        if self.weights == None:
-            self.random_initialize()
-        
         # The self.layer_activations stroes the output of each layer.
         # The first term is the input, the last term is the final output and the
         # terms in between are the hidden layer activations.
