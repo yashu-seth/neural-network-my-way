@@ -20,12 +20,12 @@ class FeedForward():
 
         >>> model = FeedForward(2, [3, 5])
         """
-        self.no_of_hidden_layers = no_of_hidden_layers
 
-        if no_of_hidden_units_per_layer == None:
-            self.no_of_hidden_units_per_layer = []
-        else:
-            self.no_of_hidden_units_per_layer = no_of_hidden_units_per_layer
+        if not isinstance(no_of_hidden_units_per_layer, list):
+            raise TypeError("no_of_hidden_units_per_layer must be a python list")
+
+        self.no_of_hidden_layers = no_of_hidden_layers
+        self.no_of_hidden_units_per_layer = no_of_hidden_units_per_layer
 
         self.layer_activations = None
         self.weights = None
