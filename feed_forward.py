@@ -31,17 +31,17 @@ class FeedForward():
         self.weights = None
         self.biases = None
 
-    def initalize(self, data, labels, no_of_output_units):
+    def initalize(self, data, labels):
 
         self.X = data
         self.no_of_samples = self.X.shape[0]
         self.no_of_input_units = self.X.shape[1]
         self.t = labels.T
-        self.output = np.zeros(shape=(no_of_output_units, self.t.shape[1]))
-        self.no_of_output_units = no_of_output_units
+        self.no_of_output_units = self.t.shape[0]
+        self.output = np.zeros(shape=(self.no_of_output_units, self.t.shape[1]))
 
-        if self.no_of_samples != self.t.shape[1] or self.t.shape[0] != no_of_output_units:
-            raise ValueError
+        if self.no_of_samples != self.t.shape[1]:
+            raise ValueError("The number of input samples and number of labels do not match")
 
         self.random_initialize()
 
@@ -122,9 +122,9 @@ class FeedForward():
             self.weights[i] += lr * deriv_weights[i]
             self.biases[i] += lr * deriv_biases[i]
 
-    def fit(self, data, labels, no_of_output_units, epoch, lr):
+    def fit(self, data, labels, epoch, lr):
 
-        self.initalize(data, labels, no_of_output_units)
+        self.initalize(data, labels)
 
         for i in range(epoch):
             self._forward_prop()
